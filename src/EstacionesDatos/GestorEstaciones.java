@@ -77,6 +77,23 @@ public class GestorEstaciones {
 		return this.estados;
 	}
 
+	public String[] municipios(String[] estados){
+		ArrayList<String> municipios = new ArrayList<>();
+		for(int i = 0; i < estados.length; i++){
+			String[] municipiosEstado = this.municipios(estados[i]);
+			for(int j = 0; j < municipiosEstado.length; j++){
+				municipios.add(municipiosEstado[j]);
+			}
+		}
+
+		String[] municipiosRetorno = new String[municipios.size()];
+		for(int i = 0; i < municipiosRetorno.length; i++){
+			municipiosRetorno[i] = municipios.get(i);
+		}
+
+		return municipiosRetorno;
+	}
+
 	public String[] municipios(String estado){
 		ArrayList<String> municipiosEnEstado = new ArrayList<>();
 		for(String municipio : diccionarioMunicipioEstado.keySet()){

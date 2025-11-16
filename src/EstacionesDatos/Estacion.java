@@ -20,7 +20,7 @@ public class Estacion {
 	public AnalizadorEstacion generaAnalizador(){
 		try{
 			return new AnalizadorEstacion(this);
-		}catch (IOException e){
+		}catch (IOException | NullPointerException e){
 			Bitacora.reportaExcepcion("No se pudo generar el analizador de la estación");
 			Bitacora.reportaExcepcion("\t->" + this.toString());
 			return null;

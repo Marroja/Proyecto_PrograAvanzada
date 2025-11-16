@@ -15,6 +15,8 @@ public class Maestro extends Thread {
 	private RenglonDatos[] resultados;
 	private boolean corriendo = true;
 
+	private long contadorTiempo;
+
 	public Maestro(Estacion[] estaciones, FiltroDatos filtroDatos) {
 		numProcesadores = Runtime.getRuntime().availableProcessors();
 		acumuladorRenglones = new ArrayList<>();
@@ -43,6 +45,7 @@ public class Maestro extends Thread {
 
 	@Override
 	public void run() {
+		contadorTiempo = System.currentTimeMillis();
 		for(Trabajador t : trabajadores){
 			t.start();
 		}
@@ -87,6 +90,10 @@ public class Maestro extends Thread {
 		}
 
 		Bitacora.reportaMovimiento("Hilo maestro entregando " + resultados.length + " renglones resultantes");
+
+		long tiempoFin = System.currentTimeMillis();
+		double deltaTiempo = (tiempoFin - contadorTiempo) / 1000.0;
+		Bitacora.reportaMovimiento("Esta tarea tomó: " + deltaTiempo +"s");
 
 		this.corriendo = false;
 	}

@@ -33,7 +33,7 @@ public class AnalizadorEstacion {
 		}
 	}
 
-	AnalizadorEstacion(Estacion estacion) throws IOException {
+	AnalizadorEstacion(Estacion estacion) throws IOException, NumberFormatException {
 		this.estacion = estacion;
 
 		URL[] conectores = obtenURLs();
@@ -79,7 +79,8 @@ public class AnalizadorEstacion {
 		return arrFiltrados;
 	}
 
-	private RenglonDatos[] leeDiarios() throws IOException {
+	private RenglonDatos[] leeDiarios() throws IOException, NullPointerException {
+
 		BufferedReader lectorDiario = new BufferedReader(new InputStreamReader(urlDiario.openStream()));
 
 		ArrayList<RenglonDatos> renglones = new ArrayList<>();

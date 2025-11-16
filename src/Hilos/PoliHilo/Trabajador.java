@@ -26,6 +26,10 @@ public class Trabajador extends Thread{
 		ArrayList<RenglonDatos> listaFiltrados = new ArrayList<>();
 		for(int i = 0; i < estaciones.length; i++){
 			AnalizadorEstacion analizador = estaciones[i].generaAnalizador();
+			if(analizador == null){
+				Bitacora.reportaExcepcion("Error en la creación del analizador para la estación:" + estaciones[i].toString());
+				continue;
+			}
 			RenglonDatos[] renglonesFiltrados = analizador.filtraDatos(filtroDatos);
 
 			for(int j = 0; j < renglonesFiltrados.length; j++){

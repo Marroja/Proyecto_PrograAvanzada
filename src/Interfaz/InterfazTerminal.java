@@ -97,6 +97,15 @@ public final class InterfazTerminal{
 			case SELEC_ESTADO:
 				System.out.println("Seleccione el criterio con el que desea filtrar las estaciones");
 				estados = solicitaEstados();
+
+				reiniciaValoresAceptacion();
+
+				if(estados[0].equals("TODO")){
+					this.estados = gestorEstaciones.estados();
+					this.municipios = gestorEstaciones.municipios(estados);
+					this.estado = Estado.ESPERA_HILO_MAESTRO;
+					break;
+				}
 				municipios = new String[0];
 				this.estado = Estado.SELEC_MUNICIPIO;
 				break;
@@ -104,27 +113,6 @@ public final class InterfazTerminal{
 			case SELEC_MUNICIPIO:
 				System.out.println("Seleccione los municipios que desea para los estados");
 				municipios = solicitaMunicipios(estados);
-
-				//Intervalos máximos de aceptación
-				fechaIni = LocalDate.MIN;
-				fechaFin = LocalDate.MAX;
-				latitudSup = Double.MAX_VALUE;
-				latitudInf = -Double.MAX_VALUE;
-				longitudSup = Double.MAX_VALUE;
-				longitudInf = -Double.MAX_VALUE;
-				altitudSup = Double.MAX_VALUE;
-				altitudInf = -Double.MAX_VALUE;
-				maxTempInf = -Double.MAX_VALUE;
-				maxTempSup = Double.MAX_VALUE;
-				minTempInf = -Double.MAX_VALUE;
-				minTempSup = Double.MAX_VALUE;
-				precipInf = -Double.MAX_VALUE;
-				precipSup = Double.MAX_VALUE;
-				evapInf = -Double.MAX_VALUE;
-				evapSup = Double.MAX_VALUE;
-				cotaInferior = -Double.MAX_VALUE;
-				cotaSuperior = Double.MAX_VALUE;
-
 				this.estado = Estado.SELEC_LATITUD_MAX;
 				break;
 
@@ -261,6 +249,28 @@ public final class InterfazTerminal{
 
 	}
 
+	private void reiniciaValoresAceptacion() {
+		//Se reinician los máximos de aceptación
+		fechaIni = LocalDate.MIN;
+		fechaFin = LocalDate.MAX;
+		latitudSup = Double.MAX_VALUE;
+		latitudInf = -Double.MAX_VALUE;
+		longitudSup = Double.MAX_VALUE;
+		longitudInf = -Double.MAX_VALUE;
+		altitudSup = Double.MAX_VALUE;
+		altitudInf = -Double.MAX_VALUE;
+		maxTempInf = -Double.MAX_VALUE;
+		maxTempSup = Double.MAX_VALUE;
+		minTempInf = -Double.MAX_VALUE;
+		minTempSup = Double.MAX_VALUE;
+		precipInf = -Double.MAX_VALUE;
+		precipSup = Double.MAX_VALUE;
+		evapInf = -Double.MAX_VALUE;
+		evapSup = Double.MAX_VALUE;
+		cotaInferior = -Double.MAX_VALUE;
+		cotaSuperior = Double.MAX_VALUE;
+	}
+
 
 	private String[] solicitaEstados(){
 		String[] estados = gestorEstaciones.estados();
@@ -273,6 +283,9 @@ public final class InterfazTerminal{
 
 		do{
 			entrada = lectorConsola.next();
+			if(entrada.trim().equals("**")){
+				return new String[]{"TODO"};
+			}
 			if(entrada.trim().equals("*")){
 				iEstados = new String[estados.length];
 				for(int i = 0; i < estados.length; i++){
