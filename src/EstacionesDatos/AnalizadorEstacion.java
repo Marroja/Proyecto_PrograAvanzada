@@ -74,6 +74,7 @@ public class AnalizadorEstacion {
 		}
 
 		Bitacora.reportaMovimiento("Se filtraron renglones " + this.renglonesDatos.length + " -> " + arrFiltrados.length);
+		Bitacora.reportaMovimiento("->Filtro: "+ filtroDatos.toString());
 
 		return arrFiltrados;
 	}

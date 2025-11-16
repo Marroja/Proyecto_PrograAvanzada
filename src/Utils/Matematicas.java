@@ -1,6 +1,7 @@
 package Utils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public final class Matematicas {
 
@@ -17,5 +18,24 @@ public final class Matematicas {
 
 		return (fechaPrueba.isAfter(min) && max.isAfter(fechaPrueba));
 	}
+
+	public static int[] enterosEnCadena(String cadena){
+		String[] separados = cadena.replace(",","").split("\\s+");
+		ArrayList<Integer> enteros = new ArrayList<>();
+		for(int i = 0; i < separados.length; i++){
+			try{
+				enteros.add(Integer.parseInt(separados[i]));
+			}catch (NumberFormatException e){
+
+			}
+		}
+		int[] valsRetorno = new int[enteros.size()];
+		for(int i = 0; i < valsRetorno.length; i++){
+			valsRetorno[i] = enteros.get(i);
+		}
+
+		return valsRetorno;
+	}
+
 
 }

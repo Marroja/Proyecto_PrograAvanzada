@@ -15,7 +15,7 @@ public class FiltroDatos{
 	public final double tempMinInf;
 	public final double tempMinSup;
 
-	FiltroDatos(
+	public FiltroDatos(
 			LocalDate fechaIni, LocalDate fechaFin,
 			double precipInf, double precipSup,
 			double evapInf, double evapSup,
@@ -33,4 +33,19 @@ public class FiltroDatos{
 		this.tempMinSup = tempMinSup;
 	}
 
+	@Override
+	public String toString() {
+		return "FiltroDatos{" +
+				"fechaIni=" + fechaIni +
+				", fechaFin=" + fechaFin +
+				", precipInf=" + precipInf +
+				", precipSup=" + precipSup +
+				", evapInf=" + evapInf +
+				", evapSup=" + evapSup +
+				", tempMaxInf=" + tempMaxInf +
+				", tempMaxSup=" + tempMaxSup +
+				", tempMinInf=" + tempMinInf +
+				", tempMinSup=" + tempMinSup +
+				'}';
+	}
 }

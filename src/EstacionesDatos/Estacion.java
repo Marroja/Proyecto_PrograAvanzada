@@ -45,14 +45,14 @@ public class Estacion {
 		return this.dirMensuales;
 	}
 
-	public boolean cumpleCriterios(String estado, String municipio,
+	public boolean cumpleCriterios(String[] estados, String[] municipios,
 								   double latitudInf, double latitudSup,
 								   double longitudInf, double longitudSup,
 								   double altitudInf, double altitudSup){
 
 		boolean cumple = true;
-		cumple &= esEstado(estado);
-		cumple &= esMunicipio(municipio);
+		cumple &= esEstado(estados);
+		cumple &= esMunicipio(municipios);
 		cumple &= entreLatitudes(latitudInf, latitudSup);
 		cumple &= entreLongitudes(longitudInf, longitudSup);
 		cumple &= entreAltitudes(altitudInf, altitudSup);
@@ -63,8 +63,8 @@ public class Estacion {
 	public boolean cumpleCriterios(FiltroEstacion discriminante){
 
 		boolean cumple = true;
-		cumple &= esEstado(discriminante.estado);
-		cumple &= esMunicipio(discriminante.municipio);
+		cumple &= esEstado(discriminante.estados);
+		cumple &= esMunicipio(discriminante.municipios);
 		cumple &= entreLatitudes(discriminante.latitudInf, discriminante.latitudSup);
 		cumple &= entreLongitudes(discriminante.longitudInf, discriminante.longitudSup);
 		cumple &= entreAltitudes(discriminante.altitudInf, discriminante.altitudSup);
@@ -80,18 +80,28 @@ public class Estacion {
 		return this.municipio;
 	}
 
-	private boolean esEstado(String estado){
-		if(estado.equalsIgnoreCase("*")){
-			return true;
+	private boolean esEstado(String[] estados){
+		for(int i = 0; i < estados.length; i++){
+			if(estados[i].equalsIgnoreCase("*")){
+				return true;
+			}
+			if(estados[i].equals(this.estado)){
+				return true;
+			}
 		}
-		return this.estado.equalsIgnoreCase(estado);
+		return false;
 	}
 
-	private boolean esMunicipio(String municipio){
-		if(municipio.equalsIgnoreCase("*")){
-			return true;
+	private boolean esMunicipio(String[] municipios){
+		for(int i = 0; i < municipios.length; i++){
+			if(municipios[i].equalsIgnoreCase("*")){
+				return true;
+			}
+			if(municipios[i].equals(this.municipio)){
+				return true;
+			}
 		}
-		return this.municipio.equalsIgnoreCase(municipio);
+		return false;
 	}
 
 	private boolean entreAltitudes(double alt1, double alt2){
@@ -121,7 +131,8 @@ public class Estacion {
 		Estacion[] estaciones = LectorXML.arregloEstaciones();
 
 		//Sólo en el estado de México
-		String estado = "MÉXICO";
+		String[] estados = new String[]{"MÉXICO"};
+		String[] municipios = new String[]{"*"};
 		double latitudMin = 0;
 		double latitudMax = 90;
 		double longitudMin = -180;
@@ -131,7 +142,7 @@ public class Estacion {
 		double altitudMax = 10000;
 
 		for(int i = 0; i < estaciones.length; i++){
-			if(estaciones[i].cumpleCriterios(estado, "*",
+			if(estaciones[i].cumpleCriterios(estados, municipios,
 					latitudMin, latitudMax,
 					longitudMin, longitudMax,
 					altitudMin, altitudMax)){

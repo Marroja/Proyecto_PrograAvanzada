@@ -54,7 +54,7 @@ public class GestorEstaciones {
 		}
 	}
 
-	private Estacion[] estacionesFiltradas(){
+	public Estacion[] estacionesFiltradas(){
 		Estacion[] filtradas = new Estacion[listasFiltrada.size()];
 		for(int i = 0; i < filtradas.length; i++){
 			filtradas[i] = listasFiltrada.get(i);
@@ -69,7 +69,7 @@ public class GestorEstaciones {
 			}
 		}
 
-		Bitacora.reportaMovimiento("Se filtraron "+ estaciones.length + " y quedaron " + listasFiltrada.size());
+		Bitacora.reportaMovimiento("Se filtraron "+ estaciones.length + " estaciones y quedaron " + listasFiltrada.size());
 		Bitacora.reportaMovimiento("Filtro: " + filtro.toString());
 	}
 
@@ -101,7 +101,7 @@ public class GestorEstaciones {
 
 	public static void main(String[] args) {
 		GestorEstaciones g = new GestorEstaciones();
-		FiltroEstacion f = new FiltroEstacion("*", "*", -90, 90, -180, 180, 2000, 10000);
+		FiltroEstacion f = new FiltroEstacion(new String[]{"*"}, new String[]{"*"}, -90, 90, -180, 180, 2000, 10000);
 		g.filtraEstaciones(f);
 		Estacion[] estaciones = g.estacionesFiltradas();
 		for(int i = 0; i < estaciones.length; i++){

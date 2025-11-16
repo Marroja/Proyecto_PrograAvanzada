@@ -1,12 +1,14 @@
 package EstacionesDatos;
 
+import java.util.Arrays;
+
 /**
  * Clase envoltorio para los criterios de filtración al momento de solicitar los archivos que se van a descartar
  */
 public final class FiltroEstacion {
 
-	public final String estado;
-	public final String municipio;
+	public final String[] estados;
+	public final String[] municipios;
 	public final double latitudInf;
 	public final double latitudSup;
 	public final double longitudInf;
@@ -14,12 +16,12 @@ public final class FiltroEstacion {
 	public final double altitudInf;
 	public final double altitudSup;
 
-	FiltroEstacion(String estado, String municipio,
-				   double latitudInf, double latitudSup,
-				   double longitudInf, double longitudSup,
-				   double altitudInf, double altitudSup){
-		this.estado = estado;
-		this.municipio = municipio;
+	public FiltroEstacion(String[] estados, String[] municipios,
+						  double latitudInf, double latitudSup,
+						  double longitudInf, double longitudSup,
+						  double altitudInf, double altitudSup){
+		this.estados = estados;
+		this.municipios = municipios;
 		this.latitudInf = latitudInf;
 		this.latitudSup = latitudSup;
 		this.longitudInf = longitudInf;
@@ -31,8 +33,8 @@ public final class FiltroEstacion {
 	@Override
 	public String toString() {
 		return
-				"Estado: " + estado + " - " +
-				"Municipio: " + municipio + " - " +
+				"Estados: " + Arrays.toString(estados) + " - " +
+				"Municipio: " + Arrays.toString(municipios) + " - " +
 				"Latitud: " +latitudInf + " < X < " + latitudSup + " - " +
 				"Longitud: " +longitudInf + " < X < " + longitudSup + " - " +
 				"Altitud: " +altitudInf + " < X < " + altitudSup;
