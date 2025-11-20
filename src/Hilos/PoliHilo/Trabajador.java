@@ -22,13 +22,12 @@ public class Trabajador extends Thread{
 	}
 
 
-		/*
+	/*
 		- descarga el contenido del URL (como Stream)
 		- va a leer cada renglón
 		- va a filtrar el renglón de acuerdo al criterio de filtro
 		- cuando termina lo regresa al maestro
 	 */
-
 	@Override
 	public synchronized void run() {
 		ArrayList<RenglonDatos> listaFiltrados = new ArrayList<>();

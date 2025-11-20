@@ -2,6 +2,9 @@ package EstacionesDatos;
 
 import java.time.LocalDate;
 
+/**
+ * Clase envoltorio para los criterios de filtración de datos
+ */
 public class FiltroDatos{
 
 	public final LocalDate fechaIni;

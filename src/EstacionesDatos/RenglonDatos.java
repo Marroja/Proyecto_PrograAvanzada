@@ -1,17 +1,13 @@
 package EstacionesDatos;
 
-import Utils.Bitacora;
-
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Date;
 
 import static Utils.Matematicas.*;
 
 public class RenglonDatos {
 
+	//qph traer el nombre, el estado y el municipio al renglón de datos para su escritura al final
 	public static final String VALOR_CENTINELA = "-1234";
 
 	public final LocalDate fecha;
@@ -20,14 +16,17 @@ public class RenglonDatos {
 	public final double tempMax;
 	public final double tempMin;
 
+	//qph tenemos que poder elegir cuál será el caracter de separación para que no sólo sean tabuladores
 	public static RenglonDatos digiereRenglon(String renglonLeido) throws Exception{
 		return new RenglonDatos(renglonLeido);
 	}
 
+	//OJO la clase es privada para que SIEMPRE se genere un renglón a partir del método estático de arriba
 	private RenglonDatos(String renglonLeido) throws ParseException, NumberFormatException{
 		renglonLeido = renglonLeido.replace("NULO", VALOR_CENTINELA);
-		String[] columnas = renglonLeido.split("\\s+", 5);
+		String[] columnas = renglonLeido.split("\\s+");	// "\\s+" indica espacio blanco (habrá que generalizar)
 
+		//qph tenemos que generalizar esta parte para N columnas
 		this.fecha = LocalDate.parse(columnas[0]);
 		this.precipitacion = Double.parseDouble(columnas[1]);
 		this.evaporacion = Double.parseDouble(columnas[2]);
@@ -44,6 +43,7 @@ public class RenglonDatos {
 				+ tempMin;
 	}
 
+	//qph necesitamos generalizar esto para que el filtro no sólo sea de 5 columnas sino de n columnas
 	public boolean cumpleCriterio(FiltroDatos filtroDatos) {
 		boolean cumple = true;
 
@@ -57,7 +57,7 @@ public class RenglonDatos {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String s = digiereRenglon("1982-02-16\t0\t4.81\t25.6\t1.4").toString();
-		System.out.println(s);
+		RenglonDatos r = digiereRenglon("1982-02-16\t0\t4.81\t25.6\t1.4");
+		System.out.println(r.toString());
 	}
 }

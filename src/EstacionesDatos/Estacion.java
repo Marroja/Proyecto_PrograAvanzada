@@ -9,6 +9,12 @@ import static Utils.Matematicas.*;
 
 public class Estacion {
 
+	//qph tenemos que generalizar esta clase para que sea general -general- no sólo estados, municipios y poquitos dobles
+	//tenemos que poder tener un número arbitrario de columnas
+
+	//Estado, municipio, latitud, longitud y altitud NO forman parte de la base de datos, son filtros para elegir
+	//las estaciones -antes- de consultar la base de datos per-se.
+
 	private final String estado;
 	private final String municipio;
 	private final double latitud;
@@ -16,6 +22,8 @@ public class Estacion {
 	private final double altitud;
 	private final String dirDiarios;
 	private final String dirMensuales;
+
+
 
 	public AnalizadorEstacion generaAnalizador(){
 		try{

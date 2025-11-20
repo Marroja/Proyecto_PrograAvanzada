@@ -8,6 +8,10 @@ import java.util.HashMap;
 
 public class GestorEstaciones {
 
+	/*	qph tenemos que abstraer la "estación" a simplemente "archivo" ya que se tiene que poder utilizar la
+		herramienta en contextos más generales
+	 */
+
 	private final Estacion[] estaciones;
 	private final ArrayList<Estacion> listasFiltrada;
 
