@@ -33,6 +33,13 @@ public class Maestro extends Thread {
 			}
 		}
 
+		/*
+			T1	[e1	e5 e9]
+			T2	[e2	e6]
+			T3	[e3	e7]
+			T4	[e4	e8]
+		 */
+
 		trabajadores = new Trabajador[numProcesadores];
 		for(int i = 0; i < trabajadores.length; i++){
 			Estacion[] estacionesTrabajador = new Estacion[estacionesPorProcesador[i].size()];
@@ -42,6 +49,7 @@ public class Maestro extends Thread {
 			trabajadores[i] = new Trabajador(estacionesTrabajador, filtroDatos);
 		}
 	}
+
 
 	@Override
 	public void run() {

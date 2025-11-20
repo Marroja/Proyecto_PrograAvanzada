@@ -45,7 +45,7 @@ public final class LectorXML {
 		String[] lineasRetorno = new String[0];
 		try{
 
-			BufferedReader br = new BufferedReader(new FileReader(new File("/home/marroja/Documentos/PCIC/PrograAvanzada/Proyecto/estaciones.xml")));
+			BufferedReader br = new BufferedReader(new FileReader(new File("recursos/estaciones.xml")));
 			ArrayList<String> lineas = new ArrayList<>();
 
 			String linea;

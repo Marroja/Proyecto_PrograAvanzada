@@ -4,14 +4,12 @@ import EstacionesDatos.*;
 import Hilos.MonoHilo.MonoHilo;
 import Hilos.PoliHilo.Maestro;
 import Utils.Matematicas;
-import sun.awt.XSettings;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import static java.lang.Thread.getDefaultUncaughtExceptionHandler;
 import static java.lang.Thread.sleep;
 
 /**
@@ -281,6 +279,7 @@ public final class InterfazTerminal{
 		String entrada = "";
 		String[] iEstados = new String[0];
 
+		//qph agregar la funcionalidad de elegir varios estados
 		do{
 			entrada = lectorConsola.next();
 			if(entrada.trim().equals("**")){
