@@ -1,0 +1,37 @@
+@startuml
+title Flujo de actividades del sistema
+
+start
+
+:Leer archivo XML de estaciones\n(LectorXML / GestorEstaciones);
+:Construir FiltroEstacion\na partir de selección del usuario;
+:Filtrar estaciones disponibles;
+
+if (¿Hay estaciones resultantes?) then (sí)
+  :Construir FiltroDatos\n(rangos de fechas y variables);
+
+  if (¿Modo de ejecución?) then (MonoHilo)
+    :Crear hilo MonoHilo\ncon todas las estaciones;
+    :Ejecutar run();
+    :Analizar cada estación secuencialmente\n(AnalizadorEstacion);
+  else (PoliHilo)
+    :Crear Maestro con estaciones filtradas\n+ FiltroDatos;
+    :Dividir estaciones en bloques\npara Trabajador[];
+    fork
+      :Cada Trabajador analiza\nsu subconjunto de estaciones;
+    fork again
+      :AnalizadorEstacion descarga CSV,\nconstruye RenglonDatos y filtra;
+    end fork
+    :Maestro recolecta todos los\nRenglonDatos limpios;
+  endif
+
+  :Unir todos los RenglonDatos válidos;
+  :Opcional: escribir resultados\nen archivo (EscritorDatos);
+  :Registrar resumen en Bitacora;
+  :Mostrar resultados al usuario;
+else (no)
+  :Mostrar mensaje de error:\n"No hay estaciones con esos criterios";
+endif
+
+stop
+@enduml

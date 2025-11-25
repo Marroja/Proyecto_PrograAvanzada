@@ -1,0 +1,82 @@
+@startuml
+title Modelo de datos: estaciones, filtros y renglones
+
+package "Modelo de estaciones y datos" {
+
+  class Estacion {
+    - id : String
+    - estado : String
+    - municipio : String
+    - latitud : double
+    - longitud : double
+    - altitud : double
+    --
+    + cumpleCriterios(...)
+    + toString() : String
+  }
+
+  class RenglonDatos {
+    + fecha : LocalDate
+    + precipitacion : double
+    + evaporacion : double
+    + tempMax : double
+    + tempMin : double
+    --
+    + cumpleFiltro(filtro : FiltroDatos) : boolean
+  }
+
+  class FiltroEstacion {
+    + estados : String[]
+    + municipios : String[]
+    + latitudInf : double
+    + latitudSup : double
+    + longitudInf : double
+    + longitudSup : double
+    + altitudInf : double
+    + altitudSup : double
+  }
+
+  class FiltroDatos {
+    + fechaIni : LocalDate
+    + fechaFin : LocalDate
+    + precipInf : double
+    + precipSup : double
+    + evapInf : double
+    + evapSup : double
+    + tempMaxInf : double
+    + tempMaxSup : double
+    + tempMinInf : double
+    + tempMinSup : double
+  }
+
+  class GestorEstaciones {
+    - estaciones : Estacion[]
+    --
+    + cargarDesdeXML(archivo : String)
+    + filtrar(filtro : FiltroEstacion) : Estacion[]
+    + getEstaciones() : Estacion[]
+  }
+
+  class AnalizadorEstacion {
+    - estacion : Estacion
+    - filtro : FiltroDatos
+    --
+    + AnalizadorEstacion(Estacion, FiltroDatos)
+    + descargarDatos()
+    + parsearCSV()
+    + filtrarDatos() : RenglonDatos[]
+  }
+
+}
+
+GestorEstaciones "1" *-- "many" Estacion
+GestorEstaciones --> FiltroEstacion
+
+AnalizadorEstacion --> Estacion
+AnalizadorEstacion --> FiltroDatos
+AnalizadorEstacion --> RenglonDatos
+
+FiltroEstacion --> Estacion : define criterios
+FiltroDatos --> RenglonDatos : define criterios
+
+@enduml

@@ -23,7 +23,7 @@ public class AnalizadorEstacion {
 	private final URL urlDiario;
 	private final URL urlMensual;
 	private final RenglonDatos[] renglonesDatos;
-
+    private final String etiquetaEstacion;
 	static{
 		try {
 			disableSSLValidation();
@@ -34,9 +34,11 @@ public class AnalizadorEstacion {
 	}
 
 	AnalizadorEstacion(Estacion estacion) throws IOException, NumberFormatException {
-		this.estacion = estacion;
+        this.estacion = estacion;
+        this.etiquetaEstacion = estacion.estado() + "-" + estacion.municipio();
 
-		URL[] conectores = obtenURLs();
+
+        URL[] conectores = obtenURLs();
 		this.urlDiario = conectores[0];
 		this.urlMensual = conectores[1];
 		this.renglonesDatos = this.leeDiarios();
@@ -89,11 +91,12 @@ public class AnalizadorEstacion {
 		boolean leyendoEncabezado = true;
 		while((linea = lectorDiario.readLine()) != null){
 			try{
-				renglones.add(RenglonDatos.digiereRenglon(linea));
+				renglones.add(RenglonDatos.digiereRenglon(etiquetaEstacion,linea));
 				leyendoEncabezado = false;
 			}catch (Exception e){
 				if(!leyendoEncabezado){
 					Bitacora.reportaExcepcion("No se pudo digerir renglón: "+ linea);
+                    Bitacora.reportaExcepcion("De Estación: "+ estacion.toString());
 				}
 			}
 		}
@@ -115,7 +118,7 @@ public class AnalizadorEstacion {
 		boolean leyendoEncabezado = true;
 		while((linea = lectorMensual.readLine()) != null){
 			try{
-				renglones.add(RenglonDatos.digiereRenglon(linea));
+				renglones.add(RenglonDatos.digiereRenglon(etiquetaEstacion ,linea));
 				leyendoEncabezado = false;
 			}catch (Exception e){
 				if(!leyendoEncabezado){

@@ -1,0 +1,42 @@
+@startuml
+title Utilidades y soporte del sistema
+
+package "Utilidades" {
+
+  class Matematicas {
+    {static} + valorEntreValores(val, v1, v2) : boolean
+    {static} + fechaEntreFechas(fecha, ini, fin) : boolean
+    {static} + parseDoubleSeguro(s : String) : double
+    {static} + parseIntSeguro(s : String) : int
+  }
+
+  class LectorXML {
+    {static} + leerEstaciones(archivo : String) : Estacion[]
+  }
+
+  class EscritorDatos {
+    {static} + escribir(renglones : RenglonDatos[], archivo : String) : void
+  }
+
+  class Bitacora {
+    {static} + movimiento(msg : String) : void
+    {static} + error(msg : String, ex : Exception) : void
+  }
+}
+
+' Clases modelo para ilustrar uso
+class Estacion
+class RenglonDatos
+class GestorEstaciones
+class AnalizadorEstacion
+
+GestorEstaciones --> LectorXML : lee estaciones\ndesde XML
+GestorEstaciones --> Bitacora : registra eventos de carga
+
+AnalizadorEstacion --> Bitacora : errores al\nleer datos remotos
+
+RenglonDatos --> Matematicas : comparación / parsing
+EscritorDatos --> RenglonDatos : escribe resultados
+EscritorDatos --> Bitacora : registra escritura
+
+@enduml

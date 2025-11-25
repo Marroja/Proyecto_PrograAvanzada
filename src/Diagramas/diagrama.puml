@@ -1,0 +1,5 @@
+@startuml
+class Estacion
+class AnalizadorEstacion
+Estacion --> AnalizadorEstacion : usa
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+title Interfaz de usuario y control del flujo
+
+package "Aplicación" {
+  class Main {
+    + main(args : String[]) : void
+  }
+}
+
+package "Interfaz de Usuario" {
+  class InterfazTerminal {
+    - gestor : GestorEstaciones
+    - filtroEstacion : FiltroEstacion
+    - filtroDatos : FiltroDatos
+    - maestro : Maestro
+    - monoHilo : MonoHilo
+    --
+    + InterfazTerminal()
+    + iniciar() : void
+  }
+
+  class Ventana {
+    ' Reservada para futura interfaz gráfica
+  }
+}
+
+' Referencias a clases ya definidas en otros diagramas
+class GestorEstaciones
+class FiltroEstacion
+class FiltroDatos
+class Maestro
+class MonoHilo
+class EscritorDatos
+class Bitacora
+
+Main --> InterfazTerminal
+Main --> Ventana
+
+InterfazTerminal --> GestorEstaciones : usa
+InterfazTerminal --> FiltroEstacion : construye
+InterfazTerminal --> FiltroDatos : construye
+InterfazTerminal --> Maestro : lanza análisis\nmultihilo
+InterfazTerminal --> MonoHilo : lanza análisis\nsecuncial
+InterfazTerminal --> EscritorDatos : exporta resultados
+InterfazTerminal --> Bitacora : registra mensajes
+
+@enduml

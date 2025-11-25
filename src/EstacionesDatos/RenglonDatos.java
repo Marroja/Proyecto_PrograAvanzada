@@ -15,15 +15,22 @@ public class RenglonDatos {
 	public final double evaporacion;
 	public final double tempMax;
 	public final double tempMin;
+    public final String etiquetaEstacion;
 
-	//qph tenemos que poder elegir cuál será el caracter de separación para que no sólo sean tabuladores
-	public static RenglonDatos digiereRenglon(String renglonLeido) throws Exception{
-		return new RenglonDatos(renglonLeido);
+    public static RenglonDatos digiereRenglon(String renglonLeido) throws Exception {
+        return new RenglonDatos("", renglonLeido);
+    }
+
+    //qph tenemos que poder elegir cuál será el caracter de separación para que no sólo sean tabuladores
+	public static RenglonDatos digiereRenglon(String etiquetaEstacion, String renglonLeido) throws Exception{
+		return new RenglonDatos(etiquetaEstacion, renglonLeido);
 	}
 
 	//OJO la clase es privada para que SIEMPRE se genere un renglón a partir del método estático de arriba
-	private RenglonDatos(String renglonLeido) throws ParseException, NumberFormatException{
-		renglonLeido = renglonLeido.replace("NULO", VALOR_CENTINELA);
+	private RenglonDatos(String etiquetaEstacion, String renglonLeido) throws ParseException, NumberFormatException{
+		this.etiquetaEstacion = etiquetaEstacion;
+
+        renglonLeido = renglonLeido.replace("NULO", VALOR_CENTINELA);
 		String[] columnas = renglonLeido.split("\\s+");	// "\\s+" indica espacio blanco (habrá que generalizar)
 
 		//qph tenemos que generalizar esta parte para N columnas
@@ -34,16 +41,19 @@ public class RenglonDatos {
 		this.tempMin = Double.parseDouble(columnas[4]);
 	}
 
-	@Override
-	public String toString() {
-		return this.fecha.toString() + " "
-				+ precipitacion + " " +
-				+ evaporacion + " " +
-				+ tempMax + " " +
-				+ tempMin;
-	}
+    @Override
+    public String toString() {
+        // Primera “columna”: etiqueta de estación
+        return etiquetaEstacion + " "
+                + fecha.toString() + " "
+                + precipitacion + " "
+                + evaporacion + " "
+                + tempMax + " "
+                + tempMin;
+    }
 
-	//qph necesitamos generalizar esto para que el filtro no sólo sea de 5 columnas sino de n columnas
+
+    //qph necesitamos generalizar esto para que el filtro no sólo sea de 5 columnas sino de n columnas
 	public boolean cumpleCriterio(FiltroDatos filtroDatos) {
 		boolean cumple = true;
 
@@ -56,8 +66,9 @@ public class RenglonDatos {
 		return cumple;
 	}
 
-	public static void main(String[] args) throws Exception {
-		RenglonDatos r = digiereRenglon("1982-02-16\t0\t4.81\t25.6\t1.4");
-		System.out.println(r.toString());
-	}
+    public static void main(String[] args) throws Exception {
+        // Esto compila correctamente gracias a la versión de 1 argumento
+        RenglonDatos r = digiereRenglon("1982-02-16\t0\t4.81\t25.6\t1.4");
+        System.out.println(r.toString());
+    }
 }
