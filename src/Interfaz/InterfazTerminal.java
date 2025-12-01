@@ -1,14 +1,20 @@
 package Interfaz;
 
-import EstacionesDatos.*;
+import ArchivosDatos.*;
+import Hilos.Hilo;
 import Hilos.MonoHilo.MonoHilo;
 import Hilos.PoliHilo.Maestro;
-import Utils.Matematicas;
+import Utils.Arreglos;
+import Utils.Config;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+
+import Utils.Matematicas;
 import Visualizacion.GraficadorSerieTiempo;
 import static java.lang.Thread.sleep;
 
@@ -18,25 +24,20 @@ import static java.lang.Thread.sleep;
  */
 public final class InterfazTerminal{
 
+	private final static int LOCAL = 0;
+	private final static int REMOTO = 1;
+
 	enum Estado{
 		ENTRADA,
 
-		SELEC_ESTADO,
-		SELEC_MUNICIPIO,
+		SELEC_CARPETA_O_URLS,
+		SELEC_DIR_ARCHIVOS,
 
-		SELEC_LATITUD_MAX,
-		SELEC_LATITUD_MIN,
-		SELEC_LONGITUD_MAX,
-		SELEC_LONGITUD_MIN,
-		SELEC_ALTITUD_MIN,
-		SELEC_ALTITUD_MAX,
-		SELEC_FECHA_MAX,
-		SELEC_FECHA_MIN,
-
-		SELEC_COLUMNA_INTERES,
+		SELEC_COLUMNAS_INTERES,
 		SELEC_COTA_INFERIOR,
 		SELEC_COTA_SUPERIOR,
 
+		SELEC_CANTIDAD_HILOS,
 		ESPERA_HILO_MAESTRO,
 		RESULTADOS_LISTOS,
 	}
@@ -45,39 +46,27 @@ public final class InterfazTerminal{
 	private boolean abierto = true;
 
 	private final Scanner lectorConsola;
-	private final GestorEstaciones gestorEstaciones;
+	private GestorArchivos gestorArchivos;
 
-	private FiltroEstacion filtroEstacion = null;
+	private char[] tipoColumnas;
+
+	private int monoPoliHilo = 0;
+	private int localRemoto = 0;
+	private File archivoObjetivo = null;
+
+	private boolean[] bColumnasSeleccionadas;
+	private ArrayList<Object> acumuladorCotas = new ArrayList<>();
+	private String[] etiquetasColumnas = new String[0];
+	private int contadorColumnaPreguntada = 0;
 	private FiltroDatos filtroDatos = null;
 
-	private int columnaSeleccionada = 0;
+	private Object[] cotas = null;
 
 	private RenglonDatos[] resultados;
 
-	private String[] estados = new String[0];
-	private String[] municipios = new String[0];
-	private LocalDate fechaIni = LocalDate.MIN;
-	private LocalDate fechaFin = LocalDate.MAX;
-	private double latitudSup = Double.MAX_VALUE;
-	private double latitudInf = -Double.MAX_VALUE;
-	private double longitudSup = Double.MAX_VALUE;
-	private double longitudInf = -Double.MAX_VALUE;
-	private double altitudSup = Double.MAX_VALUE;
-	private double altitudInf = -Double.MAX_VALUE;
-	private double maxTempInf = -Double.MAX_VALUE;
-	private double maxTempSup = Double.MAX_VALUE;
-	private double minTempInf = -Double.MAX_VALUE;
-	private double minTempSup = Double.MAX_VALUE;
-	private double precipInf = -Double.MAX_VALUE;
-	private double precipSup = Double.MAX_VALUE;
-	private double evapInf = -Double.MAX_VALUE;
-	private double evapSup = Double.MAX_VALUE;
-	private double cotaInferior = -Double.MAX_VALUE;
-	private double cotaSuperior = Double.MAX_VALUE;
-
 	public InterfazTerminal(){
-		gestorEstaciones = new GestorEstaciones();
 		lectorConsola = new Scanner(System.in);
+		lectorConsola.useDelimiter("\r\n|\n");
 
 		this.estado = Estado.ENTRADA;
 		while(abierto){
@@ -89,145 +78,167 @@ public final class InterfazTerminal{
         switch (estado) {
             case ENTRADA:
                 System.out.println("Bienvenido al analizador de base de datos de CONAGUA");
-                this.estado = Estado.SELEC_ESTADO;
+                this.estado = Estado.SELEC_CARPETA_O_URLS;
                 break;
 
-            case SELEC_ESTADO:
-                System.out.println("Seleccione el criterio con el que desea filtrar las estaciones");
-                estados = solicitaEstados();
+			case SELEC_CARPETA_O_URLS:
+                System.out.println("Seleccione si desea consultar una base de datos en línea o local");
+				System.out.println("0)Local  1)En línea");
 
-                reiniciaValoresAceptacion();
+				localRemoto = solicitaEntero(0, 1);
 
-                if (estados[0].equals("TODO")) {
-                    this.estados = gestorEstaciones.estados();
-                    this.municipios = gestorEstaciones.municipios(estados);
-                    this.estado = Estado.ESPERA_HILO_MAESTRO;
-                    break;
-                }
-                municipios = new String[0];
-                this.estado = Estado.SELEC_MUNICIPIO;
+                this.estado = Estado.SELEC_DIR_ARCHIVOS;
                 break;
 
-            case SELEC_MUNICIPIO:
-                System.out.println("Seleccione los municipios que desea para los estados");
-                municipios = solicitaMunicipios(estados);
-                this.estado = Estado.SELEC_LATITUD_MAX;
-                break;
+			case SELEC_DIR_ARCHIVOS:
+                if(localRemoto == LOCAL){
+					System.out.println("Escriba la dirección de la carpeta donde se encuentran los archivos CSV");
+					System.out.println("(Predet. " + Config.dirCarpeta() + ")");
 
-            case SELEC_LATITUD_MAX:
-                System.out.println("Escriba la latitud máxima");
-                latitudSup = solicitaDoble(Double.MAX_VALUE);
-                this.estado = Estado.SELEC_LATITUD_MIN;
-                break;
+					archivoObjetivo = solicitaCarpeta();
+					gestorArchivos = GestorArchivos.deCarpeta(archivoObjetivo.getAbsolutePath());
+				}else
+				if(localRemoto == REMOTO){
+					System.out.println("Escriba la dirección del archivo que contenga los URLs a consultar");
+					System.out.println("(Predet. " + Config.dirURLs() + ")");
 
-            case SELEC_LATITUD_MIN:
-                System.out.println("Escriba la latitud mínima");
-                latitudInf = solicitaDoble(-Double.MAX_VALUE);
-                this.estado = Estado.SELEC_LONGITUD_MAX;
-                break;
+					archivoObjetivo = solicitaArchivo();
+					gestorArchivos = GestorArchivos.deListaDeURLs(archivoObjetivo.getAbsolutePath());
+				}else{
+					//No debería de poder accederse a este estado, pero si lo hubiera, se regresa al inicio
+					System.out.println("Hubo un error, regresando al inicio");
+					this.estado = Estado.ENTRADA;
+				}
 
-            case SELEC_LONGITUD_MAX:
-                System.out.println("Escriba la longitud máxima");
-                longitudSup = solicitaDoble(Double.MAX_VALUE);
-                this.estado = Estado.SELEC_LONGITUD_MIN;
-                break;
+				etiquetasColumnas = Config.etiquetas();
 
-            case SELEC_LONGITUD_MIN:
-                System.out.println("Escriba la longitud máxima");
-                longitudInf = solicitaDoble(-Double.MAX_VALUE);
-                this.estado = Estado.SELEC_COLUMNA_INTERES;
-                break;
+				this.estado = Estado.SELEC_COLUMNAS_INTERES;
+				break;
 
-            case SELEC_ALTITUD_MAX:
-                System.out.println("Escriba la altitud máxima");
-                altitudSup = solicitaDoble(Double.MAX_VALUE);
-                this.estado = Estado.SELEC_LONGITUD_MIN;
-                break;
 
-            case SELEC_ALTITUD_MIN:
-                System.out.println("Escriba la altitud mínima");
-                altitudInf = solicitaDoble(-Double.MAX_VALUE);
-                this.estado = Estado.SELEC_FECHA_MAX;
-                break;
+            case SELEC_COLUMNAS_INTERES:
+                System.out.println("Escriba las columnas de interés para filtrar");
 
-            case SELEC_FECHA_MAX:
-                System.out.println("Escriba la fecha más tardía");
-                fechaFin = solicitaFecha(LocalDate.MAX);
-                this.estado = Estado.SELEC_FECHA_MIN;
-                break;
+				StringBuilder sb = new StringBuilder();
 
-            case SELEC_FECHA_MIN:
-                System.out.println("Escriba la fecha más tardía");
-                fechaIni = solicitaFecha(LocalDate.MIN);
-                this.estado = Estado.SELEC_COLUMNA_INTERES;
-                break;
+				sb.append("*").append(")").append("Todas").append(" ");
+				for(int i = 0; i < etiquetasColumnas.length; i++){
+					sb.append(i).append(")").append(etiquetasColumnas[i]).append(" ");
+				}
+				System.out.println(sb);
 
-            case SELEC_COLUMNA_INTERES:
-                System.out.println("Escriba las columnas de interés");
-                System.out.println("0)Ninguna 1)Precipitación 2)Evaporación 3)TMax 4)TMin ");
-                columnaSeleccionada = solicitaEntero(0, 4);
-                if (columnaSeleccionada == 0) {
+				int[] columnasSeleccionadas = solicitaEnteros(0, etiquetasColumnas.length - 1);
+
+				tipoColumnas = Config.columnas();
+				bColumnasSeleccionadas = new boolean[tipoColumnas.length];
+				for(int i = 0; i < tipoColumnas.length; i++){
+					bColumnasSeleccionadas[i] = Arreglos.contiene(columnasSeleccionadas, i);
+				}
+
+				System.out.println(Arrays.toString(bColumnasSeleccionadas));
+
+				if (columnasSeleccionadas.length == 0) {
                     this.estado = Estado.ESPERA_HILO_MAESTRO;
                 } else {
                     this.estado = Estado.SELEC_COTA_INFERIOR;
                 }
+
                 break;
 
             case SELEC_COTA_INFERIOR:
-                System.out.println("Escriba el valor mínimo");
-                cotaInferior = solicitaDoble(-Double.MAX_VALUE);
+				if(bColumnasSeleccionadas[contadorColumnaPreguntada]){
+					System.out.print("Escriba el valor mínimo de aceptación para la columna de " + etiquetasColumnas[contadorColumnaPreguntada] +": ");
+					switch (tipoColumnas[contadorColumnaPreguntada]){
+						case 'f':
+							acumuladorCotas.add(solicitaFecha());
+							break;
+						case 'i':
+							acumuladorCotas.add(solicitaEntero());
+							break;
+						case 'd':
+							acumuladorCotas.add(solicitaDoble());
+							break;
+						case 'c':
+							acumuladorCotas.add(solicitaCaracter());
+							break;
+						case 't':
+							acumuladorCotas.add(solicitaTexto());
+							break;
+					}
+				}else{
+					acumuladorCotas.add("*");
+				}
+
                 this.estado = Estado.SELEC_COTA_SUPERIOR;
                 break;
 
             case SELEC_COTA_SUPERIOR:
-                System.out.println("Escriba el valor máximo");
-                cotaSuperior = solicitaDoble(Double.MAX_VALUE);
-                this.estado = Estado.ESPERA_HILO_MAESTRO;
-                break;
+				if(bColumnasSeleccionadas[contadorColumnaPreguntada]){
+					System.out.print("Escriba el valor máximo de aceptación para la columna de " + etiquetasColumnas[contadorColumnaPreguntada] + ": ");
 
+					switch (tipoColumnas[contadorColumnaPreguntada]){
+						case 'f':
+							acumuladorCotas.add(solicitaFecha());
+							break;
+						case 'i':
+							acumuladorCotas.add(solicitaEntero());
+							break;
+						case 'd':
+							acumuladorCotas.add(solicitaDoble());
+							break;
+						case 'c':
+							acumuladorCotas.add(solicitaCaracter());
+							break;
+						case 't':
+							acumuladorCotas.add(solicitaTexto());
+							break;
+					}
+				}else{
+					acumuladorCotas.add("*");
+				}
+
+				contadorColumnaPreguntada ++;
+
+				if(contadorColumnaPreguntada < tipoColumnas.length){
+					this.estado = Estado.SELEC_COTA_INFERIOR;
+				}
+				else{
+					this.estado = Estado.SELEC_CANTIDAD_HILOS;
+				}
+				break;
+
+			case SELEC_CANTIDAD_HILOS:
+				System.out.println("Elija si desea utilizar un sólo hilo de ejecución o utilizar todos los disponibles");
+				System.out.println("0)Uno 1)Todos");
+				monoPoliHilo = solicitaEntero(0, 1);
+				this.estado = Estado.ESPERA_HILO_MAESTRO;
+				break;
 
             case ESPERA_HILO_MAESTRO:
 
-                filtroEstacion = new FiltroEstacion(estados, municipios,
-                        latitudInf, latitudSup,
-                        longitudInf, longitudSup,
-                        altitudInf, altitudSup);
+				cotas = new Object[acumuladorCotas.size()];
 
-                gestorEstaciones.filtraEstaciones(filtroEstacion);
+				for(int i = 0; i < cotas.length; i++){
+					cotas[i] = acumuladorCotas.get(i);
+				}
 
-                switch (columnaSeleccionada) {
-                    case 1:
-                        precipSup = cotaSuperior;
-                        precipInf = cotaInferior;
-                        break;
-                    case 2:
-                        evapSup = cotaSuperior;
-                        evapInf = cotaInferior;
-                        break;
-                    case 3:
-                        maxTempSup = cotaSuperior;
-                        maxTempInf = cotaInferior;
-                        break;
-                    case 4:
-                        minTempSup = cotaSuperior;
-                        minTempInf = cotaInferior;
-                        break;
-                }
+                filtroDatos = new FiltroDatos(cotas);
 
-                filtroDatos = new FiltroDatos(fechaIni, fechaFin,
-                        precipInf, precipSup,
-                        evapInf, evapSup,
-                        maxTempInf, maxTempSup,
-                        minTempInf, minTempSup);
+                Archivo[] archivos = this.gestorArchivos.archivos();
 
-                Estacion[] estaciones = gestorEstaciones.estacionesFiltradas();
-                Maestro hilo = new Maestro(estaciones, filtroDatos);
-                //MonoHilo hilo = new MonoHilo(estaciones, filtroDatos);
+				Hilo hilo = null;
+				if(monoPoliHilo == 0){
+					hilo = new MonoHilo(archivos, filtroDatos);
+				}else{
+				//if(monoPoliHilo == 1){
+					hilo = new Maestro(archivos, filtroDatos);
+				}
+
                 hilo.start();
 
                 while (hilo.estaCorriendo()) {
                     try {
-                        sleep(1000);
+                        sleep(500);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -238,34 +249,12 @@ public final class InterfazTerminal{
                 break;
 
             case RESULTADOS_LISTOS:
-                System.out.println("----------Resultados----------");
+				System.out.println("Seleccione una de las siguiente opciones");
+                System.out.println("0)Volver a inicio  1)");
                 for (int i = 0; i < resultados.length; i++) {
                     System.out.println(resultados[i]);
                 }
 
-                // Preguntar si quiere serie de tiempo
-                System.out.print("¿Desea generar y ver una serie de tiempo anual? (s/n): ");
-                String resp = lectorConsola.next().trim();
-
-                if (resp.equalsIgnoreCase("s")) {
-
-                    // 1) Año de interés
-                    System.out.print("Ingrese el año de interés (dedsde 1960 hasta 2025): ");
-                    // Si tienes solicitaEntero, úsalo; si no, puedes parsear a mano
-                    int anioInteres = solicitaEntero(1900, 2100);
-
-                    // 2) Variable a analizar
-                    System.out.println("Seleccione la variable a analizar:");
-                    System.out.println("1) Precipitación");
-                    System.out.println("2) Evaporación");
-                    System.out.println("3) Temperatura máxima");
-                    System.out.println("4) Temperatura mínima");
-
-                    int opcionVariable = solicitaEntero(1, 4);
-
-                    // Llamar al graficador Swing
-                    GraficadorSerieTiempo.graficar(resultados, anioInteres, opcionVariable);
-                }
 
                 this.estado = Estado.ENTRADA;
                 break;
@@ -273,122 +262,95 @@ public final class InterfazTerminal{
 
         }
     }
-	private void reiniciaValoresAceptacion() {
-		//Se reinician los máximos de aceptación
-		fechaIni = LocalDate.MIN;
-		fechaFin = LocalDate.MAX;
-		latitudSup = Double.MAX_VALUE;
-		latitudInf = -Double.MAX_VALUE;
-		longitudSup = Double.MAX_VALUE;
-		longitudInf = -Double.MAX_VALUE;
-		altitudSup = Double.MAX_VALUE;
-		altitudInf = -Double.MAX_VALUE;
-		maxTempInf = -Double.MAX_VALUE;
-		maxTempSup = Double.MAX_VALUE;
-		minTempInf = -Double.MAX_VALUE;
-		minTempSup = Double.MAX_VALUE;
-		precipInf = -Double.MAX_VALUE;
-		precipSup = Double.MAX_VALUE;
-		evapInf = -Double.MAX_VALUE;
-		evapSup = Double.MAX_VALUE;
-		cotaInferior = -Double.MAX_VALUE;
-		cotaSuperior = Double.MAX_VALUE;
+
+	private Object solicitaTexto() {
+		//qph
+		return "";
 	}
 
+	private Object solicitaCaracter() {
+		//qph
+		return '*';
+	}
 
-	private String[] solicitaEstados(){
-		String[] estados = gestorEstaciones.estados();
-		for(int i = 0; i < estados.length; i++){
-			System.out.println(i+") " + estados[i]);
-		}
-
-		String entrada = "";
-		String[] iEstados = new String[0];
-
-		//qph agregar la funcionalidad de elegir varios estados
+	private File solicitaArchivo(){
+		boolean valido = false;
+		File archivo;
 		do{
-			entrada = lectorConsola.next();
-			if(entrada.trim().equals("**")){
-				return new String[]{"TODO"};
-			}
-			if(entrada.trim().equals("*")){
-				iEstados = new String[estados.length];
-				for(int i = 0; i < estados.length; i++){
-					iEstados[i] = estados[i];
-				}
+			String dir = lectorConsola.next().trim();
+			archivo = new File(dir);
+			if(archivo.exists() && archivo.isFile()){
+				valido = true;
 			}else{
-				int[] indices = Matematicas.enterosEnCadena(entrada);
-				iEstados = new String[indices.length];
-				for(int i = 0; i < indices.length; i++){
-					iEstados[i] = estados[indices[i]];
+				System.err.println("Esa dirección de archivo no es válida, por favor introdúzca otra");
+			}
+		}while(!valido);
+
+		return archivo;
+	}
+
+	private File solicitaCarpeta(){
+		boolean valido = false;
+		File archivo;
+		do{
+			String dir = lectorConsola.next().trim();
+			archivo = new File(dir);
+			if(archivo.exists() && archivo.isDirectory()){
+				valido = true;
+			}else{
+				System.err.println("Esa dirección de carpeta no es válida, por favor introdúzca otra");
+			}
+		}while(!valido);
+
+		return archivo;
+	}
+
+	private int[] solicitaEnteros(int valInferior, int valSuperior) {
+		boolean valido = false;
+		int[] digeridos = new int[0];
+		do{
+			boolean numsValidos = true;
+			String cadena = lectorConsola.next().trim();
+
+			//Si se lee una * se regresan todos los valores posibles
+			if(cadena.equals("*")){
+				digeridos = new int[valSuperior - valInferior];
+				for(int i = 0; i < (valSuperior - valInferior); i++){
+					digeridos[i] = valInferior ++;
+				}
+				return digeridos;
+			}
+
+			//Sino, se leen los valores separados por comas o espacios
+			String[] enteros = cadena.split("(,+\\s*|\\s+)");
+			digeridos = new int[enteros.length];
+			for(int i = 0; i < enteros.length; i++){
+				try{
+					digeridos[i] = Integer.parseInt(enteros[i]);
+					numsValidos &= Matematicas.valorEntreValores(digeridos[i], valInferior, valSuperior);
+				}catch (NumberFormatException e){
+					numsValidos = false;
 				}
 			}
 
-			if(iEstados.length == 0){
-				System.err.println("Por favor introduzca valores válidos");
+			if(numsValidos){
+				valido = true;
+			}else{
+				System.err.println("Los valores no son válidos, por favor introduzca otros valores");
 			}
-		}while(iEstados.length < 1);
+		}while(!valido);
 
-		return iEstados;
+		return digeridos;
 	}
 
-	private String[] solicitaMunicipios(String[] estados){
-		String[] nombresEstados = gestorEstaciones.estados();
-
-		System.out.println(Arrays.toString(estados));
-		String[] municipios = new String[0];
-
-		String entrada;
-		ArrayList<String> listaMunicipiosEstado = new ArrayList<>();
-		ArrayList<String> listaMunicipios = new ArrayList<String>();
-
- 		for(int i = 0; i < estados.length; i++){
-			System.out.println("Seleccione los municipios para el estado de " + estados[i]);
-			String[] nombresMunicipios = gestorEstaciones.municipios(estados[i]);
-			for(int j = 0; j < nombresMunicipios.length; j++){
-				System.out.println(j +") " + nombresMunicipios[j]);
-			}
-
-			do{
-				entrada = lectorConsola.next();
-
-				if(entrada.equals("*")){
-					for(int k = 0; k < nombresMunicipios.length; k++){
-						listaMunicipiosEstado.add(nombresMunicipios[k]);
-					}
-				}else{
-					int[] indices = Matematicas.enterosEnCadena(entrada);
-
-					for(int k = 0; k < indices.length; k++){
-						listaMunicipiosEstado.add(nombresMunicipios[indices[k]]);
-					}
-
-					if(listaMunicipiosEstado.isEmpty()){
-						System.err.println("Por favor introduzca valores válidos");
-					}
-				}
-			}while(listaMunicipiosEstado.isEmpty());
-
-			listaMunicipios.addAll(listaMunicipiosEstado);
-			listaMunicipiosEstado.clear();
-		}
-
-		 municipios = new String[listaMunicipios.size()];
-		 for(int i = 0; i < listaMunicipios.size(); i++){
-			 municipios[i] = listaMunicipios.get(i);
-		 }
-
-		 return municipios;
-	}
-
-	private LocalDate solicitaFecha(LocalDate fechaPredet){
+	private Object solicitaFecha(){
 		LocalDate fecha = LocalDate.MIN;
 		boolean valido = false;
 		do{
 			try{
 				String lectura = lectorConsola.next();
 				if(lectura.trim().equals("*")){
-					fecha = fechaPredet;
+					return "*";
 				}else{
 					fecha = LocalDate.parse(lectura);
 				}
@@ -401,14 +363,14 @@ public final class InterfazTerminal{
 		return fecha;
 	}
 
-	private double solicitaDoble(double valorPredet){
+	private Object solicitaDoble(){
 		double val = 0;
 		boolean valido = false;
 		do{
 			try{
 				String lectura = lectorConsola.next();
 				if(lectura.trim().equals("*")){
-					val = valorPredet;
+					return "*";
 				}else{
 					val = Double.parseDouble(lectura);
 				}
@@ -429,10 +391,12 @@ public final class InterfazTerminal{
 				String lectura = lectorConsola.next();
 				val = Integer.parseInt(lectura);
 
-				if(val >= valInferior && val <= valSuperior){
-					valido = true;
-				}
-			}catch (Exception e){
+				valido = Matematicas.valorEntreValores(val, valInferior, valSuperior);
+			}catch (NumberFormatException e){
+				System.err.println("No se pudo obtener un número desde la cadena leída");
+			}
+
+			if(!valido){
 				System.err.println("Por favor indroduzca un valor válido entre " + valInferior + " -> " + valSuperior);
 			}
 		}while(!valido);
@@ -440,14 +404,14 @@ public final class InterfazTerminal{
 		return val;
 	}
 
-	private double solicitaEntero(int valorPredet){
+	private Object solicitaEntero(){
 		int val = 0;
 		boolean valido = false;
 		do{
 			try{
 				String lectura = lectorConsola.next();
 				if(lectura.trim().equals("*")){
-					val = valorPredet;
+					return "*";
 				}else{
 					val = Integer.parseInt(lectura);
 				}
@@ -460,18 +424,8 @@ public final class InterfazTerminal{
 		return val;
 	}
 
-    private int anioInteres = -1;
-
-    private enum VariableInteres {
-        PRECIPITACION,
-        EVAPORACION,
-        TEMP_MAX,
-        TEMP_MIN,
-        NINGUNA
-    }
-
-    private VariableInteres variableInteres = VariableInteres.NINGUNA;
-
-
+	public static void main(String[] args) {
+		new InterfazTerminal();
+	}
 
 }

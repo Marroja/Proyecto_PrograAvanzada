@@ -5,7 +5,18 @@ import java.util.ArrayList;
 
 public final class Matematicas {
 
+	public static boolean valorEntreValores(int valPrueba, int val1, int val2){
+		int max = Math.max(val1, val2);
+		int min = Math.min(val1, val2);
+
+		return (valPrueba >= min && valPrueba <= max);
+	}
+
 	public static boolean valorEntreValores(double valPrueba, double val1, double val2){
+		if(Double.isNaN(valPrueba)){
+			return Config.aceptaNaN();
+		}
+
 		double max = Math.max(val1, val2);
 		double min = Math.min(val1, val2);
 
@@ -36,6 +47,4 @@ public final class Matematicas {
 
 		return valsRetorno;
 	}
-
-
 }

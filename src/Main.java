@@ -9,8 +9,6 @@ public class Main {
 				new Ventana();
 			}
 		}
-
 		new InterfazTerminal();
 	}
-
 }

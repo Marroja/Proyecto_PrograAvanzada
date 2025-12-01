@@ -1,27 +1,26 @@
 package Hilos.PoliHilo;
 
-import EstacionesDatos.Estacion;
-import EstacionesDatos.FiltroDatos;
-import EstacionesDatos.RenglonDatos;
+import ArchivosDatos.Archivo;
+import ArchivosDatos.FiltroDatos;
+import ArchivosDatos.RenglonDatos;
+import Hilos.Hilo;
 import Utils.Bitacora;
 
 import java.util.ArrayList;
 
-public class Maestro extends Thread {
+public class Maestro extends Hilo {
 
 	private final int numProcesadores;
 	private final ArrayList<RenglonDatos> acumuladorRenglones;
 	private final Trabajador[] trabajadores;
-	private RenglonDatos[] resultados;
-	private boolean corriendo = true;
 
 	private long contadorTiempo;
 
-	public Maestro(Estacion[] estaciones, FiltroDatos filtroDatos) {
+	public Maestro(Archivo[] estaciones, FiltroDatos filtroDatos) {
 		numProcesadores = Runtime.getRuntime().availableProcessors();
 		acumuladorRenglones = new ArrayList<>();
 
-		ArrayList<Estacion>[] estacionesPorProcesador = new ArrayList[numProcesadores];
+		ArrayList<Archivo>[] estacionesPorProcesador = new ArrayList[numProcesadores];
 
 		//Se reparten las estaciones en los arreglos que se asignarán a cada trabajador
 		{
@@ -42,7 +41,7 @@ public class Maestro extends Thread {
 
 		trabajadores = new Trabajador[numProcesadores];
 		for(int i = 0; i < trabajadores.length; i++){
-			Estacion[] estacionesTrabajador = new Estacion[estacionesPorProcesador[i].size()];
+			Archivo[] estacionesTrabajador = new Archivo[estacionesPorProcesador[i].size()];
 			for(int j = 0; j < estacionesTrabajador.length; j++){
 				estacionesTrabajador[j] = estacionesPorProcesador[i].get(j);
 			}
@@ -84,7 +83,7 @@ public class Maestro extends Thread {
 
 			if(esperando){
 				try {
-					sleep(1000);
+					sleep(500);
 					Bitacora.reportaMovimiento("Hilo maestro esperando a " + numEsperados + " hilos faltantes");
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e);
@@ -106,11 +105,4 @@ public class Maestro extends Thread {
 		this.corriendo = false;
 	}
 
-	public boolean estaCorriendo(){
-		return this.corriendo;
-	}
-
-	public RenglonDatos[] resultados(){
-		return this.resultados;
-	}
 }

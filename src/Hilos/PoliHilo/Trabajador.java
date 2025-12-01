@@ -1,22 +1,22 @@
 package Hilos.PoliHilo;
 
-import EstacionesDatos.AnalizadorEstacion;
-import EstacionesDatos.Estacion;
-import EstacionesDatos.FiltroDatos;
-import EstacionesDatos.RenglonDatos;
+import ArchivosDatos.AnalizadorArchivo;
+import ArchivosDatos.Archivo;
+import ArchivosDatos.FiltroDatos;
+import ArchivosDatos.RenglonDatos;
+import Hilos.Hilo;
 import Utils.Bitacora;
 
 import java.util.ArrayList;
 
-public class Trabajador extends Thread{
+public class Trabajador extends Hilo {
 
-	private final Estacion[] estaciones;
+	private final Archivo[] estaciones;
 	private final FiltroDatos filtroDatos;
-	private RenglonDatos[] renglonesLimpios;
-	private boolean corriendo = true;
 	private boolean fueLeido = false;
 
-	Trabajador(Estacion[] estaciones, FiltroDatos filtroDatos){
+	Trabajador(Archivo[] estaciones, FiltroDatos filtroDatos){
+		super();
 		this.estaciones = estaciones;
 		this.filtroDatos = filtroDatos;
 	}
@@ -29,10 +29,10 @@ public class Trabajador extends Thread{
 		- cuando termina lo regresa al maestro
 	 */
 	@Override
-	public synchronized void run() {
+	public void run() {
 		ArrayList<RenglonDatos> listaFiltrados = new ArrayList<>();
 		for(int i = 0; i < estaciones.length; i++){
-			AnalizadorEstacion analizador = estaciones[i].generaAnalizador();
+			AnalizadorArchivo analizador = estaciones[i].generaAnalizador();
 			if(analizador == null){
 				Bitacora.reportaExcepcion("Error en la creación del analizador para la estación:" + estaciones[i].toString());
 				continue;
@@ -40,15 +40,15 @@ public class Trabajador extends Thread{
 			RenglonDatos[] renglonesFiltrados = analizador.filtraDatos(filtroDatos);
 
 			for(int j = 0; j < renglonesFiltrados.length; j++){
-				if(renglonesFiltrados[j].cumpleCriterio(filtroDatos)){
+				if(filtroDatos.cumpleCriterio(renglonesFiltrados[j])){
 					listaFiltrados.add(renglonesFiltrados[j]);
 				}
 			}
 		}
 
-		renglonesLimpios = new RenglonDatos[listaFiltrados.size()];
+		this.resultados = new RenglonDatos[listaFiltrados.size()];
 		for(int i = 0; i < listaFiltrados.size(); i++){
-			renglonesLimpios[i] = listaFiltrados.get(i);
+			super.resultados[i] = listaFiltrados.get(i);
 		}
 
 		corriendo = false;
@@ -56,18 +56,16 @@ public class Trabajador extends Thread{
 		Bitacora.reportaMovimiento("El hilo " + this.getName() + " terminó de procesar " + estaciones.length + " estaciones");
 	}
 
-	public boolean estaCorriendo(){
-		return this.corriendo;
-	}
-
 	public boolean fueLeido(){
 		return this.fueLeido;
 	}
 
-	//qph se tienen que regresar los renglones con la estación a la que corresponden
 	public RenglonDatos[] resultados() {
-		fueLeido = true;
-		return this.renglonesLimpios;
+		if(!fueLeido){
+			fueLeido = true;
+			return super.resultados();
+		}
+		throw new RuntimeException("Los valores del trabajador sólo deben leerse una vez, al acumularlos en el maestro");
 	}
 
 }

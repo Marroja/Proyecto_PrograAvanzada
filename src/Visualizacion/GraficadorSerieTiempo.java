@@ -1,6 +1,6 @@
 package Visualizacion;
 
-import EstacionesDatos.RenglonDatos;
+import ArchivosDatos.RenglonDatos;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,9 +11,9 @@ import java.util.List;
 
 public class GraficadorSerieTiempo {
 
-    // Valor centinela numérico usado en RenglonDatos ("-1234")
+    // Valor centinela numérico usado en RenglonDatos ("NaN")
     private static final double VALOR_CENTINELA_NUM =
-            Double.parseDouble(EstacionesDatos.RenglonDatos.VALOR_CENTINELA);
+            Double.parseDouble(ArchivosDatos.RenglonDatos.VALOR_CENTINELA);
 
     /**
      * variableOpcion:
@@ -56,6 +56,7 @@ public class GraficadorSerieTiempo {
         List<PuntoSerie> lista = new ArrayList<>();
 
         for (RenglonDatos r : datos) {
+            /*
             if (r.fecha.getYear() != anio) continue;
 
             double v;
@@ -67,12 +68,13 @@ public class GraficadorSerieTiempo {
                 default: return new ArrayList<>();
             }
 
-            // --- NUEVO: ignorar datos NULO (-1234) ---
+            // --- NUEVO: ignorar datos NULO (NaN) ---
             if (Double.compare(v, VALOR_CENTINELA_NUM) == 0) {
                 continue;
             }
 
             lista.add(new PuntoSerie(r.fecha, v));
+             */
         }
 
         lista.sort(Comparator.comparing(p -> p.fecha));
@@ -124,6 +126,7 @@ public class GraficadorSerieTiempo {
 
             int w = getWidth();
             int h = getHeight();
+
             int margenIzq = 60;
             int margenDer = 20;
             int margenSup = 40;
@@ -134,6 +137,7 @@ public class GraficadorSerieTiempo {
 
             double minVal = Double.POSITIVE_INFINITY;
             double maxVal = Double.NEGATIVE_INFINITY;
+
             for (PuntoSerie p : serie) {
                 if (p.valor < minVal) minVal = p.valor;
                 if (p.valor > maxVal) maxVal = p.valor;
@@ -143,49 +147,45 @@ public class GraficadorSerieTiempo {
                 maxVal += 1.0;
             }
 
-            int grafW = w - margenIzq - margenDer;
-            int grafH = h - margenSup - margenInf;
+            double grafW = w - margenIzq - margenDer;
+            double grafH = h - margenSup - margenInf;
 
             int x0 = margenIzq;
             int y0 = h - margenInf;
 
-            g2.drawLine(x0, y0, x0 + grafW, y0);       // eje X
-            g2.drawLine(x0, y0, x0, y0 - grafH);       // eje Y
+            g2.drawLine(x0, y0, (int)(x0 + grafW), y0);       // eje X
+            g2.drawLine(x0, y0, x0, (int)(y0 - grafH));       // eje Y
 
             String titulo = nombreVariable + " (" + anio + ")";
             g2.drawString(titulo, margenIzq, margenSup - 10);
 
             g2.drawString(String.format("%.2f", minVal), 5, y0);
-            g2.drawString(String.format("%.2f", maxVal), 5, y0 - grafH);
+            g2.drawString(String.format("%.2f", maxVal), 5, (int)(y0 - grafH));
 
             g2.drawString(serie.get(0).fecha.toString(), x0, y0 + 20);
-            g2.drawString(serie.get(serie.size()-1).fecha.toString(),
-                    x0 + grafW - 100, y0 + 20);
+            g2.drawString(serie.get(serie.size()-1).fecha.toString(), x0 + (int) grafW - 100, y0 + 20);
 
-            PuntoSerie prev = null;
-            for (PuntoSerie p : serie) {
+            int xPrev = 0;
+            int yPrev = 0;
+
+            boolean noPrimero = false;
+            for (int i = 0; i < serie.size(); i++) {
+                PuntoSerie p = serie.get(i);
                 int dia = p.fecha.getDayOfYear();
 
-                double xNorm = (double)(dia - minDia) /
-                        (double)Math.max(1, (maxDia - minDia));
-                double yNorm = (p.valor - minVal) /
-                        (maxVal - minVal);
+                double xNorm = (double)(dia - minDia) / (double)(maxDia - minDia);
+                double yNorm = (double)(p.valor - minVal) / (double)(maxVal - minVal);
 
                 int x = x0 + (int)(xNorm * grafW);
                 int y = y0 - (int)(yNorm * grafH);
 
-                if (prev != null) {
-                    int diaPrev = prev.fecha.getDayOfYear();
-                    double xNormPrev = (double)(diaPrev - minDia) /
-                            (double)Math.max(1, (maxDia - minDia));
-                    double yNormPrev = (prev.valor - minVal) /
-                            (maxVal - minVal);
-                    int xPrev = x0 + (int)(xNormPrev * grafW);
-                    int yPrev = y0 - (int)(yNormPrev * grafH);
-
-                    g2.drawLine(xPrev, yPrev, x, y);
+                if (noPrimero) {
+                    g2.fillOval(x, y, 2, 2);
                 }
-                prev = p;
+
+                xPrev = x;
+                yPrev = y;
+                noPrimero = true;
             }
         }
     }
