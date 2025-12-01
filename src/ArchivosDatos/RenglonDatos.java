@@ -2,11 +2,9 @@ package ArchivosDatos;
 
 import Utils.Config;
 
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import static Utils.Matematicas.*;
 
 public class RenglonDatos {
 
@@ -61,6 +59,10 @@ public class RenglonDatos {
 					break;
 			}
 		}
+	}
+
+	public Object columna(int indice){
+		return columnas[indice];
 	}
 
 	Object[] columnas(){
