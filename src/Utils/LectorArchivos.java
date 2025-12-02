@@ -76,8 +76,8 @@ public class LectorArchivos {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(Arrays.toString(leerArchivoCompleto("Proyecto_PrograAvanzada/recursos/fomato.ini")));
-		System.out.println(Arrays.toString(leeArchivoCompletoConFiltro("Proyecto_PrograAvanzada/recursos/fomato.ini", '#')));
+		System.out.println(Arrays.toString(leerArchivoCompleto("Proyecto_PrograAvanzada/recursos/formato.ini")));
+		System.out.println(Arrays.toString(leeArchivoCompletoConFiltro("Proyecto_PrograAvanzada/recursos/formato.ini", '#')));
 	}
 
 }

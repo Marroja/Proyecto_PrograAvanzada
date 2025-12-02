@@ -8,7 +8,6 @@ import Utils.Arreglos;
 import Utils.Config;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import java.util.Scanner;
 
 import Utils.Estadisticas;
 import Utils.Matematicas;
-import Visualizacion.GraficadorSerieTiempo;
 import static java.lang.Thread.sleep;
 
 /**
@@ -57,15 +55,11 @@ public final class InterfazTerminal{
 
 	private int monoPoliHilo = 0;
 	private int localRemoto = 0;
-	private File archivoObjetivo = null;
 
 	private boolean[] bColumnasSeleccionadas;
-	private ArrayList<Object> acumuladorCotas = new ArrayList<>();
+	private final ArrayList<Object> acumuladorCotas = new ArrayList<>();
 	private String[] etiquetasColumnas = new String[0];
 	private int contadorColumnaPreguntada = 0;
-	private FiltroDatos filtroDatos = null;
-
-	private Object[] cotas = null;
 
 	private RenglonDatos[] resultados;
 
@@ -80,7 +74,7 @@ public final class InterfazTerminal{
 	}
 
 	public void maquinaEstados() {
-        switch (estado) {
+		switch (estado) {
 			case ENTRADA:
 				System.out.println("Bienvenido al analizador de base de datos de CONAGUA");
 				this.estado = Estado.SELEC_CARPETA_O_URLS;
@@ -95,7 +89,8 @@ public final class InterfazTerminal{
 				this.estado = Estado.SELEC_DIR_ARCHIVOS;
 				break;
 
-			case SELEC_DIR_ARCHIVOS:
+			case SELEC_DIR_ARCHIVOS:{
+				File archivoObjetivo = null;
 				if (localRemoto == LOCAL) {
 					System.out.println("Escriba la dirección de la carpeta donde se encuentran los archivos CSV");
 					System.out.println("(Predet. " + Config.dirCarpeta() + ")");
@@ -117,7 +112,8 @@ public final class InterfazTerminal{
 				etiquetasColumnas = Config.etiquetas();
 
 				this.estado = Estado.SELEC_COLUMNAS_INTERES;
-				break;
+			}
+			break;
 
 
 			case SELEC_COLUMNAS_INTERES:
@@ -197,15 +193,14 @@ public final class InterfazTerminal{
 				this.estado = Estado.ESPERA_HILO_MAESTRO;
 				break;
 
-			case ESPERA_HILO_MAESTRO:
-
-				cotas = new Object[acumuladorCotas.size()];
+			case ESPERA_HILO_MAESTRO: {
+				Object[] cotas = new Object[acumuladorCotas.size()];
 
 				for (int i = 0; i < cotas.length; i++) {
 					cotas[i] = acumuladorCotas.get(i);
 				}
 
-				filtroDatos = new FiltroDatos(cotas);
+				FiltroDatos filtroDatos = new FiltroDatos(cotas);
 
 				Archivo[] archivos = this.gestorArchivos.archivos();
 
@@ -231,7 +226,8 @@ public final class InterfazTerminal{
 
 				System.out.println("Se obtuvieron " + resultados.length + " renglones que satisfacen el filtro");
 				this.estado = Estado.RESULTADOS_LISTOS;
-				break;
+			}
+			break;
 
 			case RESULTADOS_LISTOS: {
 				System.out.println("Seleccione una de las siguiente opciones");
@@ -259,12 +255,12 @@ public final class InterfazTerminal{
 								"6)Covarianza \n" +
 								"7)Correlación de Pearson");
 
-				int selecccion = solicitaEntero(0, 7);
+				int seleccion = solicitaEntero(0, 7);
 				int columna1 = -1;
 				int columna2 = -1;
 
 				//Se eligen las columnas de acuerdo al tipo de cálculos que se van a hacer
-				switch (selecccion){
+				switch (seleccion){
 					case 0:	this.estado = Estado.RESULTADOS_LISTOS;	break;
 
 					//Estadísticos de una sola columna
@@ -296,7 +292,7 @@ public final class InterfazTerminal{
 						break;
 				}
 
-				if(selecccion == 0){
+				if(seleccion == 0){
 					break;
 				}
 
@@ -312,7 +308,7 @@ public final class InterfazTerminal{
 
 				double resultado = 0;
 				//Se retornan los resultados de acuerdo al tipo de operación que se seleccionó
-				switch (selecccion){
+				switch (seleccion){
 					case 1:	resultado = Estadisticas.media(valsColumna1); 		break;
 					case 2:	resultado = Estadisticas.moda(valsColumna1);		break;
 					case 3:	resultado = Estadisticas.mediana(valsColumna1);		break;

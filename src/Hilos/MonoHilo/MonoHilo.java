@@ -5,6 +5,7 @@ import ArchivosDatos.Archivo;
 import ArchivosDatos.FiltroDatos;
 import ArchivosDatos.RenglonDatos;
 import Hilos.Hilo;
+import Utils.Bitacora;
 
 import java.util.ArrayList;
 
@@ -20,6 +21,9 @@ public class MonoHilo extends Hilo {
 
 	@Override
 	public void run() {
+
+		long contadorTiempo = System.currentTimeMillis();
+
 		ArrayList<RenglonDatos> listaFiltrados = new ArrayList<>();
 		for(int i = 0; i < estaciones.length; i++){
 			AnalizadorArchivo analizador = estaciones[i].generaAnalizador();
@@ -36,6 +40,11 @@ public class MonoHilo extends Hilo {
 		for(int i = 0; i < listaFiltrados.size(); i++){
 			resultados[i] = listaFiltrados.get(i);
 		}
+
+		long tiempoFin = System.currentTimeMillis();
+		double deltaTiempo = (tiempoFin - contadorTiempo) / 1000.0;
+		Bitacora.reportaMovimiento("Esta tarea tomó: " + deltaTiempo +"s");
+
 		corriendo = false;
 	}
 
