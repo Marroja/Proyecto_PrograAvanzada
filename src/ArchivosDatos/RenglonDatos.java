@@ -7,8 +7,6 @@ import java.util.Arrays;
 
 
 public class RenglonDatos {
-
-	//qph traer el nombre, el estado y el municipio al renglón de datos para su escritura al final
 	public static final String VALOR_CENTINELA = ""+Double.NaN;
 
 	private final String nombreArchivo;

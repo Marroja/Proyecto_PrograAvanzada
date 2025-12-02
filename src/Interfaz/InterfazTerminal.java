@@ -4,17 +4,18 @@ import ArchivosDatos.*;
 import Hilos.Hilo;
 import Hilos.MonoHilo.MonoHilo;
 import Hilos.PoliHilo.Maestro;
-import Utils.Arreglos;
-import Utils.Config;
+import Utils.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import Utils.Estadisticas;
-import Utils.Matematicas;
+import Visualizacion.Graficador;
+
 import static java.lang.Thread.sleep;
 
 /**
@@ -135,8 +136,6 @@ public final class InterfazTerminal{
 					bColumnasSeleccionadas[i] = Arreglos.contiene(columnasSeleccionadas, i);
 				}
 
-				System.out.println(Arrays.toString(bColumnasSeleccionadas));
-
 				if (columnasSeleccionadas.length == 0) {
 					this.estado = Estado.ESPERA_HILO_MAESTRO;
 				} else {
@@ -183,6 +182,7 @@ public final class InterfazTerminal{
 					this.estado = Estado.SELEC_COTA_INFERIOR;
 				} else {
 					this.estado = Estado.SELEC_CANTIDAD_HILOS;
+					contadorColumnaPreguntada = 0;
 				}
 				break;
 
@@ -323,27 +323,74 @@ public final class InterfazTerminal{
 			break;
 
 			case SELEC_GRAFICAS:{
-				//qph
+				int columnaX = -1;
+				int columnaY = -1;
+
+				System.out.println("¿Cuáles son las columnas que quiere usar para graficación?");
+				for(int i = 0; i < etiquetasColumnas.length; i++){
+					if(tipoColumnas[i]=='d' || tipoColumnas[i]=='i' || tipoColumnas[i] == 'f'){
+						System.out.println(i + ")" + etiquetasColumnas[i]);
+					}
+				}
+				System.out.print("Columna X: ");
+				columnaX = solicitaColumnaCantidad();
+				System.out.println("Columna Y: ");
+				columnaY = solicitaColumnaCantidad();
+
+				Object[] valsColumnaX = new Object[resultados.length];
+				Object[] valsColumnaY = new Object[resultados.length];
+
+				for(int i = 0; i < valsColumnaX.length;  i++){
+					valsColumnaX[i] = resultados[columnaX];
+					valsColumnaY[i] = resultados[columnaY];
+				}
+
+				Graficador.dibuja(valsColumnaX, valsColumnaY);
+				estado = Estado.RESULTADOS_LISTOS;
 			}
 			break;
 
 			case SELEC_GUARDADO:{
-				//qph
+				System.out.println("Escriba la dirección del archivo donde desea guardar los resultados:");
+				File direccion =  solicitaArchivoNuevo();
+
+				try{
+					EscritorArchivos.guardaArchivo(direccion.getAbsolutePath(), resultados);
+				}catch (IOException e){
+					System.err.println("No se pudo guardar el archivo en la dirección: " + direccion.getAbsolutePath());
+				}
+
+				estado = Estado.RESULTADOS_LISTOS;
 			}
 			break;
 
 		}
     }
 
-	private Object solicitaTexto() {
-		//qph
-		return "";
+	private String solicitaTexto() {
+		return lectorConsola.next().trim();
 	}
 
-	private Object solicitaCaracter() {
-		//qph
-		return '*';
+	private char solicitaCaracter() {
+		return lectorConsola.next().trim().charAt(0);
 	}
+
+	private File solicitaArchivoNuevo() {
+		boolean valido = false;
+		File archivo;
+		do{
+			String dir = lectorConsola.next().trim();
+			archivo = new File(dir);
+			if(!archivo.exists()){
+				valido = true;
+			}else{
+				System.err.println("Esa dirección de archivo no es válida, por favor introdúzca otra");
+			}
+		}while(!valido);
+
+		return archivo;
+	}
+
 
 	private File solicitaArchivo(){
 		boolean valido = false;
@@ -375,6 +422,30 @@ public final class InterfazTerminal{
 		}while(!valido);
 
 		return archivo;
+	}
+
+	private int solicitaColumnaCantidad(){
+		boolean valido = false;
+		char[] tiposColumna = Config.columnas();
+
+		int colSelec = -1;
+		do{
+			String lectura = lectorConsola.next().trim();
+			try{
+				colSelec = Integer.parseInt(lectura);
+			}catch (NumberFormatException e){
+				System.out.println("Por favor introduzca un valor válido");
+				continue;
+			}
+
+			valido = (tiposColumna[colSelec] == 'i' || tiposColumna[colSelec] == 'd'|| tiposColumna[colSelec] == 'f');
+			if(!valido){
+				System.err.println("La columna seleccionada no es de valores numéricos");
+				System.out.println(Arrays.toString(Config.etiquetas()));
+			}
+		}while(!valido);
+
+		return colSelec;
 	}
 
 	private int solicitaColumnaNumerica(){

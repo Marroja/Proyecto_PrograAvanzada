@@ -5,9 +5,9 @@ import java.util.Arrays;
 public class Config {
 
 	private static boolean inicializado = false;
-	private static final String dirURLs = "/recursos/urls.txt";
-	private static final String dirCarpeta = "/recursos/archivos";
-	private static final String dirConfig = "/recursos/formato.ini";
+	private static final String dirURLs = "recursos/urls.txt";
+	private static final String dirCarpeta = "recursos/archivos";
+	private static final String dirConfig = "recursos/formato.ini";
 	private static final String ESPACIO = "\\s+";
 	private static final String ESPACIO_OPCIONAL = "\\s*";
 	private static String separador = ESPACIO;
